@@ -1,0 +1,19 @@
+{
+  "name": "cycle-undo",
+  "version": "0.0.1",
+  "description": "Undo and redo for Cycle.js apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Widdershin/cycle-undo.git"
+  },
+  "author": "Nick Johnstone",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Widdershin/cycle-undo/issues"
+  },
+  "homepage": "https://github.com/Widdershin/cycle-undo"
+}
