@@ -4,7 +4,12 @@
   "description": "Undo and redo for Cycle.js apps",
   "main": "index.js",
   "scripts": {
-    "test": "npm test"
+    "precompile-lib": "rm -rf lib/ && mkdir -p lib",
+    "compile-lib": "babel src -d lib",
+    "browserify": "browserify src/undo.js --standalone CycleUndo -t babelify --outfile dist/undo.js",
+    "prepublish": "npm run compile-lib",
+    "test": "mocha --compilers js:babel/register",
+    "autotest": "mocha --compilers js:babel/register --watch -R min"
   },
   "repository": {
     "type": "git",
@@ -17,6 +22,7 @@
   },
   "homepage": "https://github.com/Widdershin/cycle-undo",
   "devDependencies": {
+    "assert": "^1.3.0",
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
     "mocha": "^2.3.3",
@@ -24,6 +30,7 @@
   },
   "dependencies": {
     "@cycle/core": "^5.0.0",
+    "babel": "^5.8.23",
     "rx": "^4.0.6"
   }
 }
