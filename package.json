@@ -15,5 +15,15 @@
   "bugs": {
     "url": "https://github.com/Widdershin/cycle-undo/issues"
   },
-  "homepage": "https://github.com/Widdershin/cycle-undo"
+  "homepage": "https://github.com/Widdershin/cycle-undo",
+  "devDependencies": {
+    "babelify": "^6.3.0",
+    "browserify": "^11.2.0",
+    "mocha": "^2.3.3",
+    "watchify": "^3.4.0"
+  },
+  "dependencies": {
+    "@cycle/core": "^5.0.0",
+    "rx": "^4.0.6"
+  }
 }
