@@ -15,7 +15,7 @@ function undoStream (recordedStream$, undo$) {
       position$,
       recordedStream$,
       (undoPosition, events) => {
-        return events[events.length - 1 + undoPosition]
+        return events[events.length - 1 + undoPosition];
       }
     )
     .distinctUntilChanged()

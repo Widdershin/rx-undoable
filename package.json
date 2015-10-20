@@ -9,7 +9,9 @@
     "browserify": "browserify src/undo.js --standalone CycleUndo -t babelify --outfile dist/undo.js",
     "prepublish": "npm run compile-lib",
     "test": "mocha --compilers js:babel/register",
-    "autotest": "mocha --compilers js:babel/register --watch -R min"
+    "autotest": "mocha --compilers js:babel/register --watch -R min",
+    "example": "budo -d examples examples/counter.js:bundle.js -- -t babelify | garnish",
+    "start": "npm run example"
   },
   "repository": {
     "type": "git",
@@ -22,9 +24,11 @@
   },
   "homepage": "https://github.com/Widdershin/cycle-undo",
   "devDependencies": {
+    "@cycle/dom": "^7.1.0",
     "assert": "^1.3.0",
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
+    "budo": "^5.1.5",
     "mocha": "^2.3.3",
     "watchify": "^3.4.0"
   },
