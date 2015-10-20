@@ -1,4 +1,5 @@
 import Rx from 'rx';
+import _ from 'lodash';
 
 function recordStream (stream) {
   return stream
@@ -8,8 +9,15 @@ function recordStream (stream) {
 
 function undoStream (recordedStream$, undo$) {
   const position$ = undo$.map(_ => -1)
-    .startWith(0)
-    .scan((total, change) => total + change);
+    .withLatestFrom(recordedStream$, (change, events) => ({change, events}))
+    .startWith({events: [], change: 0})
+    .scan((total, {events, change}) => {
+      if (events.length === 0) { return 0; }
+
+      const minimumPossibleUndoPosition = (-events.length) + 1;
+
+      return _.max([minimumPossibleUndoPosition, total + change]);
+    }, 0);
 
   return Rx.Observable.combineLatest(
       position$,

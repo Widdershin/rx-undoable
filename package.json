@@ -35,6 +35,7 @@
   "dependencies": {
     "@cycle/core": "^5.0.0",
     "babel": "^5.8.23",
+    "lodash": "^3.10.1",
     "rx": "^4.0.6"
   }
 }

@@ -15,6 +15,11 @@ function prettyMessage (message) {
     return `  @${message.time}: -- Complete --`;
   }
 
+  if (message.value.kind === 'E') {
+    console.trace(message.value.error);
+    return `  @${message.time}: -- Error! --: ${message.value.error}`
+  }
+
   return '  IMPLEMENT KIND ' + message.value.kind;
 }
 
@@ -88,6 +93,35 @@ describe('Undo', () => {
       onNext(250, {count: 0}),
       onNext(400, {count: 1}),
       onNext(500, {count: 0})
+    ], results.messages);
+
+    done();
+  });
+
+  it("doesn't blow up if you undo too many times", (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const state$ = scheduler.createHotObservable(
+      onNext(250, {count: 0}),
+      onNext(300, {count: 1}),
+      onNext(650, {count: 1})
+    );
+
+    const undo$ = scheduler.createHotObservable(
+      onNext(500, true),
+      onNext(550, true),
+      onNext(600, true)
+    );
+
+    const results = scheduler.startScheduler(() => {
+      return Undo(state$, undo$).state$;
+    });
+
+    collectionAssert.assertEqual([
+      onNext(250, {count: 0}),
+      onNext(300, {count: 1}),
+      onNext(500, {count: 0}),
+      onNext(650, {count: 1})
     ], results.messages);
 
     done();
