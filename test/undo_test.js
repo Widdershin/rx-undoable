@@ -4,19 +4,39 @@ import Rx from 'rx';
 import assert from 'assert';
 import Undo from '../src/undo';
 
-function createMessage(actual, expected) {
-  return 'Expected: [' + expected.toString() + ']\r\nActual: [' + actual.toString() + ']';
+Rx.config.longStackSupport = true;
+
+function prettyMessage (message) {
+  if (message.value.kind === 'N') {
+    return `  @${message.time}: ${JSON.stringify(message.value.value)}`;
+  }
+
+  if (message.value.kind === 'C') {
+    return `  @${message.time}: -- Complete --`;
+  }
+
+  return '  IMPLEMENT KIND ' + message.value.kind;
+}
+
+function prettyMessages (messages) {
+  return messages.map(prettyMessage).join('\n');
+}
+
+function createMessage (expected, actual) {
+  return 'Expected: \n[\n' + prettyMessages(expected) + '\n]\r\n\nActual: \n[\n' + prettyMessages(actual) + '\n]';
 }
 
 // Using QUnit testing for assertions
 var collectionAssert = {
   assertEqual: function (expected, actual) {
-    var comparer = Rx.internals.isEqual,
-      isOk = true;
+    let comparer = Rx.internals.isEqual;
+    let isOk = true;
+
+    let isEqualSize = true;
 
     if (expected.length !== actual.length) {
-      assert(false, 'Not equal length. Expected: ' + expected.length + ' Actual: ' + actual.length);
-      return;
+      console.log('Not equal length. Expected: ' + expected.length + ' Actual: ' + actual.length);
+      isEqualSize = false;
     }
 
     for(var i = 0, len = expected.length; i < len; i++) {
@@ -26,7 +46,7 @@ var collectionAssert = {
       }
     }
 
-    assert(isOk, createMessage(expected, actual));
+    assert(isOk && isEqualSize, createMessage(expected, actual));
   }
 
 };
@@ -52,28 +72,23 @@ describe('Undo', () => {
     const scheduler = new Rx.TestScheduler();
 
     const state$ = scheduler.createHotObservable(
-      onNext(100, {count: 0}),
-      onNext(200, {count: 1}),
-      onCompleted(500)
+      onNext(250, {count: 0}),
+      onNext(400, {count: 1})
     );
 
     const undo$ = scheduler.createHotObservable(
-      onNext(300, true),
-      onCompleted(500)
+      onNext(500, true)
     );
 
-    const undo = Undo(state$, undo$);
+    const results = scheduler.startScheduler(() => {
+      return Undo(state$, undo$).state$;
+    });
 
-    collectionAssert.assertEqual(undo.state$.messages, [
-      onNext(100, {count: 0}),
-      onNext(200, {count: 1}),
-      onNext(300, {count: 0}),
-      onCompleted(500)
-    ]);
-
-    state$.onNext({count: 0});
-    state$.onNext({count: 1});
-    undo$.onNext(true);
+    collectionAssert.assertEqual([
+      onNext(250, {count: 0}),
+      onNext(400, {count: 1}),
+      onNext(500, {count: 0})
+    ], results.messages);
 
     done();
   });
