@@ -21,7 +21,7 @@ function undoAndRedoStream (recordedStream$, undo$, redo$) {
 
       const minimumPossibleUndoPosition = (-events.length) + 1;
 
-      return _.max([minimumPossibleUndoPosition, total + change]);
+      return _.min([0, _.max([minimumPossibleUndoPosition, total + change])]);
     }, 0);
 
   return Rx.Observable.combineLatest(

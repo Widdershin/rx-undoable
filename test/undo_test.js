@@ -131,7 +131,8 @@ describe('Undo', () => {
 
     const state$ = scheduler.createHotObservable(
       onNext(250, {count: 0}),
-      onNext(300, {count: 1})
+      onNext(300, {count: 1}),
+      onNext(700, {count: 2})
     );
 
     const undo$ = scheduler.createHotObservable(
@@ -139,6 +140,7 @@ describe('Undo', () => {
     );
 
     const redo$ = scheduler.createHotObservable(
+      onNext(600, true),
       onNext(600, true)
     );
 
@@ -150,7 +152,8 @@ describe('Undo', () => {
       onNext(250, {count: 0}),
       onNext(300, {count: 1}),
       onNext(500, {count: 0}),
-      onNext(600, {count: 1})
+      onNext(600, {count: 1}),
+      onNext(700, {count: 2})
     ], results.messages);
 
     done();

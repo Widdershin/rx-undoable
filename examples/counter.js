@@ -10,15 +10,17 @@ function main ({DOM}) {
     .scan((total, change) => total + change);
 
   const undo$ = DOM.select('.undo').events('click');
+  const redo$ = DOM.select('.redo').events('click');
 
-  const undo = Undo(count$, undo$);
+  const undo = Undo(count$, undo$, redo$);
 
   return {
     DOM: undo.state$.map(count =>
       h('div', [
         `Count: ${count}`,
         h('button.add', '+'),
-        h('button.undo', 'Undo')
+        h('button.undo', 'Undo'),
+        h('button.redo', 'Redo')
       ])
     )
   };
