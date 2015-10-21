@@ -31,7 +31,6 @@ function createMessage (expected, actual) {
   return 'Expected: \n[\n' + prettyMessages(expected) + '\n]\r\n\nActual: \n[\n' + prettyMessages(actual) + '\n]';
 }
 
-// Using QUnit testing for assertions
 var collectionAssert = {
   assertEqual: function (expected, actual) {
     let comparer = Rx.internals.isEqual;
@@ -122,6 +121,36 @@ describe('Undo', () => {
       onNext(300, {count: 1}),
       onNext(500, {count: 0}),
       onNext(650, {count: 1})
+    ], results.messages);
+
+    done();
+  });
+
+  it("optionally redoes", (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const state$ = scheduler.createHotObservable(
+      onNext(250, {count: 0}),
+      onNext(300, {count: 1})
+    );
+
+    const undo$ = scheduler.createHotObservable(
+      onNext(500, true)
+    );
+
+    const redo$ = scheduler.createHotObservable(
+      onNext(600, true)
+    );
+
+    const results = scheduler.startScheduler(() => {
+      return Undo(state$, undo$, redo$).state$;
+    });
+
+    collectionAssert.assertEqual([
+      onNext(250, {count: 0}),
+      onNext(300, {count: 1}),
+      onNext(500, {count: 0}),
+      onNext(600, {count: 1})
     ], results.messages);
 
     done();

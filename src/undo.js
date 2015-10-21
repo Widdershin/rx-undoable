@@ -7,8 +7,13 @@ function recordStream (stream) {
     .share();
 }
 
-function undoStream (recordedStream$, undo$) {
-  const position$ = undo$.map(_ => -1)
+function undoAndRedoStream (recordedStream$, undo$, redo$) {
+  const undoPositionChange$ = Rx.Observable.merge(
+    undo$.map(_ => -1),
+    redo$.map(_ => +1)
+  );
+
+  const position$ = undoPositionChange$
     .withLatestFrom(recordedStream$, (change, events) => ({change, events}))
     .startWith({events: [], change: 0})
     .scan((total, {events, change}) => {
@@ -30,8 +35,10 @@ function undoStream (recordedStream$, undo$) {
     .map(event => event.event);
 }
 
-export default function Undo (state$, undo$) {
+const emptyObservable = Rx.Observable.empty();
+
+export default function Undo (state$, undo$, redo$ = emptyObservable) {
   return {
-    state$: undoStream(recordStream(state$), undo$)
+    state$: undoAndRedoStream(recordStream(state$), undo$, redo$)
   };
 }
