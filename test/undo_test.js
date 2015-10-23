@@ -2,7 +2,7 @@
 
 import Rx from 'rx';
 import assert from 'assert';
-import undoable from '../src/undo';
+import undoable from '../src/undoable';
 
 Rx.config.longStackSupport = true;
 

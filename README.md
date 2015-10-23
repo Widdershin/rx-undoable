@@ -61,7 +61,7 @@ After:
 import Rx from 'rx';
 import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-import undoable from '../src/undo';                          // NEW
+import undoable from 'rx-undoable';                          // NEW
 
 function main ({DOM}) {
   let action$ = Rx.Observable.merge(

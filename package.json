@@ -2,11 +2,11 @@
   "name": "rx-undoable",
   "version": "0.1.0",
   "description": "Undo and redo for Cycle.js apps",
-  "main": "index.js",
+  "main": "lib/undoable.js",
   "scripts": {
     "precompile-lib": "rm -rf lib/ && mkdir -p lib",
     "compile-lib": "babel src -d lib",
-    "browserify": "browserify src/undo.js --standalone CycleUndo -t babelify --outfile dist/undo.js",
+    "browserify": "browserify src/undoable.js --standalone undoable -t babelify --outfile dist/undoable.js",
     "prepublish": "npm run compile-lib",
     "test": "mocha --compilers js:babel/register",
     "autotest": "mocha --compilers js:babel/register --watch -R min",
