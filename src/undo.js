@@ -38,7 +38,5 @@ function undoAndRedoStream (recordedStream$, undo$, redo$) {
 const emptyObservable = Rx.Observable.empty();
 
 export default function Undo (state$, undo$, redo$ = emptyObservable) {
-  return {
-    state$: undoAndRedoStream(recordStream(state$), undo$, redo$)
-  };
+  return undoAndRedoStream(recordStream(state$), undo$, redo$);
 }

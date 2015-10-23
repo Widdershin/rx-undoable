@@ -1,26 +1,31 @@
-import {Rx, run} from '@cycle/core';
+import Rx from 'rx';
+import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-
-import Undo from '../src/undo';
+import undoable from '../src/undo';                          // NEW
 
 function main ({DOM}) {
-  const count$ = DOM.select('.add').events('click')
-    .map(event => +1)
-    .startWith(0)
-    .scan((total, change) => total + change);
+  let action$ = Rx.Observable.merge(
+    DOM.select('.subtract').events('click').map(ev => -1),
+    DOM.select('.add').events('click').map(ev => +1)
+  );
 
-  const undo$ = DOM.select('.undo').events('click');
-  const redo$ = DOM.select('.redo').events('click');
+  let undo$ = DOM.select('.undo').events('click');           // NEW
+  let redo$ = DOM.select('.redo').events('click');           // NEW
 
-  const undo = Undo(count$, undo$, redo$);
+  let count$ = action$.startWith(0).scan((x, y) => x + y);
+
+  let undoableCount$ = undoable(count$, undo$, redo$);       // NEW
 
   return {
-    DOM: undo.state$.map(count =>
+    DOM: undoableCount$.map(count =>                         // CHANGED
       h('div', [
-        `Count: ${count}`,
-        h('button.add', '+'),
-        h('button.undo', 'Undo'),
-        h('button.redo', 'Redo')
+        h('button.undo', 'Undo'),                            // NEW
+        h('button.redo', 'Redo'),                            // NEW
+
+        h('button.subtract', 'Subtract'),
+        h('button.add', 'Add'),
+
+        h('p', 'Counter: ' + count)
       ])
     )
   };

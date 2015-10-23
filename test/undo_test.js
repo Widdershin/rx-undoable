@@ -2,7 +2,7 @@
 
 import Rx from 'rx';
 import assert from 'assert';
-import Undo from '../src/undo';
+import undoable from '../src/undo';
 
 Rx.config.longStackSupport = true;
 
@@ -59,7 +59,7 @@ const onNext = Rx.ReactiveTest.onNext,
     onCompleted = Rx.ReactiveTest.onCompleted,
     subscribe = Rx.ReactiveTest.subscribe;
 
-describe('Undo', () => {
+describe('undoable', () => {
   it('takes a stream of state and a stream of undo intent', (done) => {
     const state$ = Rx.Observable.just(
       {count: 0}
@@ -67,7 +67,7 @@ describe('Undo', () => {
 
     const undo$ = Rx.Observable.empty();
 
-    Undo(state$, undo$);
+    undoable(state$, undo$);
 
     done();
   });
@@ -85,7 +85,7 @@ describe('Undo', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return Undo(state$, undo$).state$;
+      return undoable(state$, undo$);
     });
 
     collectionAssert.assertEqual([
@@ -113,7 +113,7 @@ describe('Undo', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return Undo(state$, undo$).state$;
+      return undoable(state$, undo$);
     });
 
     collectionAssert.assertEqual([
@@ -145,7 +145,7 @@ describe('Undo', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return Undo(state$, undo$, redo$).state$;
+      return undoable(state$, undo$, redo$);
     });
 
     collectionAssert.assertEqual([
