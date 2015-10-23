@@ -14,7 +14,8 @@
     "test": "mocha --compilers js:babel/register",
     "autotest": "mocha --compilers js:babel/register --watch -R min",
     "example": "budo -d examples examples/counter.js:bundle.js -- -t babelify | garnish",
-    "start": "npm run example"
+    "start": "npm run example",
+    "bundle-example": "browserify examples/counter.js -t babelify -o bundle.js"
   },
   "repository": {
     "type": "git",
