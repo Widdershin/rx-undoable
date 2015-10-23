@@ -1,5 +1,5 @@
 {
-  "name": "cycle-undo",
+  "name": "rx-undoable",
   "version": "0.0.1",
   "description": "Undo and redo for Cycle.js apps",
   "main": "index.js",
@@ -15,16 +15,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Widdershin/cycle-undo.git"
+    "url": "https://github.com/Widdershin/rx-undoable.git"
   },
   "author": "Nick Johnstone",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Widdershin/cycle-undo/issues"
+    "url": "https://github.com/Widdershin/rx-undoable/issues"
   },
-  "homepage": "https://github.com/Widdershin/cycle-undo",
+  "homepage": "https://github.com/Widdershin/rx-undoable",
   "devDependencies": {
+    "babel": "^5.8.23",
     "@cycle/dom": "^7.1.0",
+    "@cycle/core": "^5.0.0",
     "assert": "^1.3.0",
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
@@ -33,8 +35,6 @@
     "watchify": "^3.4.0"
   },
   "dependencies": {
-    "@cycle/core": "^5.0.0",
-    "babel": "^5.8.23",
     "lodash": "^3.10.1",
     "rx": "^4.0.6"
   }
