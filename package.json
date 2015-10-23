@@ -3,9 +3,9 @@
   "version": "0.1.2",
   "description": "Undo and redo for Cycle.js apps",
   "main": "lib/undoable.js",
-   "directories": {
-    "lib": "lib"
-  },
+  "files": [
+    "lib/"
+  ],
   "scripts": {
     "precompile-lib": "rm -rf lib/ && mkdir -p lib",
     "compile-lib": "babel src -d lib",
