@@ -95,3 +95,13 @@ run(main, {
   DOM: makeDOMDriver('.app')
 });
 ```
+
+Prior art
+---
+
+`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo).
+
+Contributing
+---
+
+Issues, pull requests and feedback of all sorts welcome! If you're unsure, send me an email at [ncwjohnstone@gmail.com](mailto:ncwjohnstone@gmail.com).
