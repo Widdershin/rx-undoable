@@ -15,8 +15,6 @@ var _srcUndoable = require('../src/undoable');
 
 var _srcUndoable2 = _interopRequireDefault(_srcUndoable);
 
-// NEW
-
 function main(_ref) {
   var DOM = _ref.DOM;
 
@@ -29,20 +27,22 @@ function main(_ref) {
   var undo$ = DOM.select('.undo').events('click'); // NEW
   var redo$ = DOM.select('.redo').events('click'); // NEW
 
-  var count$ = action$.startWith(0).scan(function (x, y) {
+  var count$ = (0, _srcUndoable2['default'])( // NEW
+  action$, // NEW
+  function (x, y) {
     return x + y;
-  });
-
-  var undoableCount$ = (0, _srcUndoable2['default'])(count$, undo$, redo$); // NEW
+  }, // NEW
+  0, // NEW
+  undo$, // NEW
+  redo$ // NEW
+  ).pluck('present'); // NEW
 
   return {
-    DOM: undoableCount$.map(function (count) {
-      return (// CHANGED
-        (0, _cycleDom.h)('div', [(0, _cycleDom.h)('button.undo', 'Undo'), // NEW
-        (0, _cycleDom.h)('button.redo', 'Redo'), // NEW
+    DOM: count$.map(function (count) {
+      return (0, _cycleDom.h)('div', [(0, _cycleDom.h)('button.undo', 'Undo'), // NEW
+      (0, _cycleDom.h)('button.redo', 'Redo'), // NEW
 
-        (0, _cycleDom.h)('button.subtract', 'Subtract'), (0, _cycleDom.h)('button.add', 'Add'), (0, _cycleDom.h)('p', 'Counter: ' + count)])
-      );
+      (0, _cycleDom.h)('button.subtract', 'Subtract'), (0, _cycleDom.h)('button.add', 'Add'), (0, _cycleDom.h)('p', 'Counter: ' + count)]);
     })
   };
 }
@@ -30653,11 +30653,6 @@ var ReactiveTest = Rx.ReactiveTest = {
 },{"_process":118}],121:[function(require,module,exports){
 'use strict';
 
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-exports['default'] = Undo;
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 var _rx = require('rx');
@@ -30668,49 +30663,78 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-function recordStream(stream) {
-  return stream.scan(function (events, event, index) {
-    return events.concat([{ event: event, index: index }]);
-  }, []).share();
-}
-
-function undoAndRedoStream(recordedStream$, undo$, redo$) {
-  var undoPositionChange$ = _rx2['default'].Observable.merge(undo$.map(function (_) {
-    return -1;
-  }), redo$.map(function (_) {
-    return +1;
-  }));
-
-  var position$ = undoPositionChange$.withLatestFrom(recordedStream$, function (change, events) {
-    return { change: change, events: events };
-  }).startWith({ events: [], change: 0 }).scan(function (total, _ref) {
-    var events = _ref.events;
-    var change = _ref.change;
-
-    if (events.length === 0) {
-      return 0;
-    }
-
-    var minimumPossibleUndoPosition = -events.length + 1;
-
-    return _lodash2['default'].min([0, _lodash2['default'].max([minimumPossibleUndoPosition, total + change])]);
-  }, 0);
-
-  return _rx2['default'].Observable.combineLatest(position$, recordedStream$, function (undoPosition, events) {
-    return events[events.length - 1 + undoPosition];
-  }).distinctUntilChanged().map(function (event) {
-    return event.event;
-  });
-}
-
 var emptyObservable = _rx2['default'].Observable.empty();
 
-function Undo(state$, undo$) {
-  var redo$ = arguments.length <= 2 || arguments[2] === undefined ? emptyObservable : arguments[2];
+function undo() {
+  return function (_ref) {
+    var past = _ref.past;
+    var present = _ref.present;
+    var future = _ref.future;
 
-  return undoAndRedoStream(recordStream(state$), undo$, redo$);
+    if (past.length === 0) {
+      return { past: past, present: present, future: future };
+    }
+
+    return {
+      past: past.slice(0, past.length - 1),
+      present: _lodash2['default'].last(past),
+      future: [present].concat(future)
+    };
+  };
 }
 
-module.exports = exports['default'];
+function redo() {
+  return function (_ref2) {
+    var past = _ref2.past;
+    var present = _ref2.present;
+    var future = _ref2.future;
+
+    if (future.length === 0) {
+      return { past: past, present: present, future: future };
+    }
+
+    return {
+      past: past.concat([present]),
+      present: _lodash2['default'].first(future),
+      future: future.slice(1)
+    };
+  };
+}
+
+function sourceEvent(f, eventValue) {
+  return function (_ref3) {
+    var past = _ref3.past;
+    var present = _ref3.present;
+    var future = _ref3.future;
+
+    return {
+      past: past.concat([present]),
+      present: f(present, eventValue),
+      future: []
+    };
+  };
+}
+
+module.exports = function undoableScan(source$, f, defaultValue, undo$) {
+  var redo$ = arguments.length <= 4 || arguments[4] === undefined ? emptyObservable : arguments[4];
+
+  if (undo$ === undefined) {
+    throw new Error('Must pass a stream of undo$ intent');
+  }
+
+  var action$ = _rx2['default'].Observable.merge(source$.map(function (event) {
+    return sourceEvent(f, event);
+  }), undo$.map(undo), redo$.map(redo));
+
+  var initialState = {
+    past: [],
+    present: defaultValue,
+    future: []
+  };
+
+  return action$.startWith(initialState).scan(function (state, action) {
+    return action(state);
+  });
+};
 
 },{"lodash":119,"rx":120}]},{},[1]);
