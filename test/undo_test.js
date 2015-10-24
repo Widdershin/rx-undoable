@@ -2,7 +2,7 @@
 
 import Rx from 'rx';
 import assert from 'assert';
-import undoable from '../src/undoable';
+import '../src/undoable';
 
 import _ from 'lodash';
 
@@ -19,7 +19,7 @@ function prettyMessage (message) {
 
   if (message.value.kind === 'E') {
     console.trace(message.value.error);
-    return `  @${message.time}: -- Error! --: ${message.value.error}`
+    return `  @${message.time}: -- Error! --: ${message.value.error}`;
   }
 
   return '  IMPLEMENT KIND ' + message.value.kind;
@@ -61,51 +61,14 @@ const onNext = Rx.ReactiveTest.onNext,
     onCompleted = Rx.ReactiveTest.onCompleted,
     subscribe = Rx.ReactiveTest.subscribe;
 
-describe('undoable', () => {
-  it('takes a stream of state and a stream of undo intent', (done) => {
-    const state$ = Rx.Observable.just(
-      {count: 0}
-    );
-
-    const undo$ = Rx.Observable.empty();
-
-    undoable(state$, undo$);
-
-    done();
-  });
-
-  it('undoes changes to state when asked', (done) => {
-    const scheduler = new Rx.TestScheduler();
-
-    const state$ = scheduler.createHotObservable(
-      onNext(250, {count: 0}),
-      onNext(400, {count: 1})
-    );
-
-    const undo$ = scheduler.createHotObservable(
-      onNext(500, true)
-    );
-
-    const results = scheduler.startScheduler(() => {
-      return undoable(state$, undo$);
-    });
-
-    collectionAssert.assertEqual([
-      onNext(250, {count: 0}),
-      onNext(400, {count: 1}),
-      onNext(500, {count: 0})
-    ], results.messages);
-
-    done();
-  });
-
+describe('undoableScan', () => {
   it("doesn't blow up if you undo too many times", (done) => {
     const scheduler = new Rx.TestScheduler();
 
-    const state$ = scheduler.createHotObservable(
-      onNext(250, {count: 0}),
-      onNext(300, {count: 1}),
-      onNext(650, {count: 1})
+    const add$ = scheduler.createHotObservable(
+      onNext(250, 1),
+      onNext(300, 1),
+      onNext(650, 1)
     );
 
     const undo$ = scheduler.createHotObservable(
@@ -115,26 +78,28 @@ describe('undoable', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return undoable(state$, undo$);
+      return add$.undoableScan(_.add, 0, undo$);
     });
 
     collectionAssert.assertEqual([
-      onNext(250, {count: 0}),
-      onNext(300, {count: 1}),
-      onNext(500, {count: 0}),
-      onNext(650, {count: 1})
+      onNext(200, {past: [], present: 0, future: []}), // Start
+      onNext(250, {past: [0], present: 1, future: []}), // Add
+      onNext(300, {past: [0, 1], present: 2, future: []}), // Add
+      onNext(500, {past: [0], present: 1, future: [2]}), // Undo
+      onNext(550, {past: [], present: 0, future: [1, 2]}),  // Undo
+      onNext(600, {past: [], present: 0, future: [1, 2]}),  // Undo
+      onNext(650, {past: [0], present: 1, future: []})  // Add
     ], results.messages);
-
     done();
   });
 
-  it("optionally redoes", (done) => {
+  it('optionally redoes', (done) => {
     const scheduler = new Rx.TestScheduler();
 
-    const state$ = scheduler.createHotObservable(
-      onNext(250, {count: 0}),
-      onNext(300, {count: 1}),
-      onNext(700, {count: 2})
+    const add$ = scheduler.createHotObservable(
+      onNext(250, 1),
+      onNext(300, 1),
+      onNext(350, 1)
     );
 
     const undo$ = scheduler.createHotObservable(
@@ -143,19 +108,21 @@ describe('undoable', () => {
 
     const redo$ = scheduler.createHotObservable(
       onNext(600, true),
-      onNext(600, true)
+      onNext(620, true)
     );
 
     const results = scheduler.startScheduler(() => {
-      return undoable(state$, undo$, redo$);
+      return add$.undoableScan(_.add, 0, undo$, redo$);
     });
 
     collectionAssert.assertEqual([
-      onNext(250, {count: 0}),
-      onNext(300, {count: 1}),
-      onNext(500, {count: 0}),
-      onNext(600, {count: 1}),
-      onNext(700, {count: 2})
+      onNext(200, {past: [], present: 0, future: []}), // Start
+      onNext(250, {past: [0], present: 1, future: []}), // Add
+      onNext(300, {past: [0, 1], present: 2, future: []}), // Add
+      onNext(350, {past: [0, 1, 2], present: 3, future: []}), // Add
+      onNext(500, {past: [0, 1], present: 2, future: [3]}), // Undo
+      onNext(600, {past: [0, 1, 2], present: 3, future: []}),  // Redo
+      onNext(620, {past: [0, 1, 2], present: 3, future: []})  // Redo
     ], results.messages);
 
     done();
@@ -178,18 +145,17 @@ describe('undoable', () => {
       onNext(400, true)
     );
 
-    const count$ = add$.merge(subtract$).scan(_.add);
-
     const results = scheduler.startScheduler(() => {
-      return undoable(count$, undo$);
+      return add$.merge(subtract$).undoableScan(_.add, 0, undo$);
     });
 
     collectionAssert.assertEqual([
-      onNext(250, 1), // Add
-      onNext(300, 2), // Add
-      onNext(320, 3), // Add
-      onNext(400, 2), // Undo
-      onNext(500, 1)  // Subtract
+      onNext(200, {past: [], present: 0, future: []}), // Start
+      onNext(250, {past: [0], present: 1, future: []}), // Add
+      onNext(300, {past: [0, 1], present: 2, future: []}), // Add
+      onNext(320, {past: [0, 1, 2], present: 3, future: []}), // Add
+      onNext(400, {past: [0, 1], present: 2, future: [3]}), // Undo
+      onNext(500, {past: [0, 1, 2], present: 1, future: []})  // Subtract
     ], results.messages);
 
     done();
