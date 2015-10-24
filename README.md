@@ -11,6 +11,31 @@ Installation
 
 `npm install --save rx-undoable`
 
+Usage
+---
+
+`rx-undoable` adds a new operator to the Observable prototype, `undoableScan`.
+
+```
+const numbers$ = Rx.Observable.range(1, 5);
+
+const undo$ = ... // observable of undo intent, like clicking an undo button
+
+const undoableSum$ = Rx.Observable.undoableScan(
+  (total, change) => total + change,
+  0,
+  undo$
+);
+```
+
+You can replace any usage of `scan` with `undoableScan` and you will be able to undo and redo.
+
+
+API
+---
+
+###`Rx.Observable.undoableScan(accumulator, seed, undo$, [redo$])`
+
 
 Example
 ---
@@ -34,7 +59,7 @@ function main ({DOM}) {
     .scan((x, y) => x + y);
 
   return {
-    DOM: undoableCount$.map(count =>
+    DOM: count$.map(count =>
       h('div', [
         h('button.subtract', 'Subtract'),
         h('button.add', 'Add'),
@@ -94,7 +119,7 @@ run(main, {
 Prior art
 ---
 
-`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo).
+`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo) and the algorithm used is described very eloquently by [Dan Abramov in the Redux documentation](http://rackt.org/redux/docs/recipes/ImplementingUndoHistory.html).
 
 Contributing
 ---
