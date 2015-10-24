@@ -1,6 +1,6 @@
 {
   "name": "rx-undoable",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Undo and redo for Cycle.js apps",
   "main": "lib/undoable.js",
   "files": [
