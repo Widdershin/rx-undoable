@@ -1,7 +1,5 @@
 # rx-undoable
 
-**This project is still in a state of flux and is not ready for any real world use.**
-
 Easily undo and redo RxJS observables.
 
 Great for adding undo and redo buttons to Cycle.js applications.
