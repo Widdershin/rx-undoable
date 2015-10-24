@@ -14,27 +14,38 @@ Installation
 Usage
 ---
 
-`rx-undoable` adds a new operator to the Observable prototype, `undoableScan`.
-
 ```
+import undoableScan = 'rx-undoable';
+
 const numbers$ = Rx.Observable.range(1, 5);
 
 const undo$ = ... // observable of undo intent, like clicking an undo button
 
-const undoableSum$ = Rx.Observable.undoableScan(
+const undoableSum$ = undoableScan(
+  numbers$,
   (total, change) => total + change,
   0,
   undo$
-);
+).pluck('present');
 ```
-
-You can replace any usage of `scan` with `undoableScan` and you will be able to undo and redo.
 
 
 API
 ---
 
-###`Rx.Observable.undoableScan(accumulator, seed, undo$, [redo$])`
+###`undoableScan(stream$, accumulator, seed, undo$, [redo$])`
+
+Which is equivalent to `stream$.scan(accumulator, seed)`, expect that data is returned in this format:
+
+```
+{
+  past: [...],
+  present: thing,
+  future: [...]
+}
+```
+
+So to get the present data, use `undoableScan(...).pluck('present')`.
 
 
 Example
@@ -81,7 +92,7 @@ After:
 import Rx from 'rx';
 import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-import 'rx-undoable';                                        // NEW
+import undoableScan from 'rx-undoable';
 
 function main ({DOM}) {
   let action$ = Rx.Observable.merge(
@@ -92,9 +103,13 @@ function main ({DOM}) {
   let undo$ = DOM.select('.undo').events('click');           // NEW
   let redo$ = DOM.select('.redo').events('click');           // NEW
 
-  let count$ = action$
-    .startWith(0)
-    .undoableScan((x, y) => x + y, 0, undo$, redo$);         // CHANGED
+  let count$ = undoableScan(                                 // NEW
+    action$,                                                 // NEW
+    (x, y) => x + y,                                         // NEW
+    0,                                                       // NEW
+    undo$,                                                   // NEW
+    redo$                                                    // NEW
+  ).pluck('present');                                        // NEW
 
   return {
     DOM: count$.map(count =>

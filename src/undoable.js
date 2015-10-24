@@ -41,12 +41,10 @@ function sourceEvent (f, eventValue) {
   };
 }
 
-Rx.Observable.prototype.undoableScan = function (f, defaultValue, undo$, redo$ = emptyObservable) {
+module.exports = function undoableScan (source$, f, defaultValue, undo$, redo$ = emptyObservable) {
   if (undo$ === undefined) {
     throw new Error('Must pass a stream of undo$ intent');
   }
-
-  const source$ = this;
 
   const action$ = Rx.Observable.merge(
     source$.map(event => sourceEvent(f, event)),
@@ -63,4 +61,4 @@ Rx.Observable.prototype.undoableScan = function (f, defaultValue, undo$, redo$ =
   return action$
     .startWith(initialState)
     .scan((state, action) => action(state));
-};
+}

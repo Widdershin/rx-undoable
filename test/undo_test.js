@@ -2,7 +2,7 @@
 
 import Rx from 'rx';
 import assert from 'assert';
-import '../src/undoable';
+import undoableScan from '../src/undoable';
 
 import _ from 'lodash';
 
@@ -78,7 +78,7 @@ describe('undoableScan', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return add$.undoableScan(_.add, 0, undo$);
+      return undoableScan(add$, _.add, 0, undo$);
     });
 
     collectionAssert.assertEqual([
@@ -112,7 +112,7 @@ describe('undoableScan', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return add$.undoableScan(_.add, 0, undo$, redo$);
+      return undoableScan(add$, _.add, 0, undo$, redo$);
     });
 
     collectionAssert.assertEqual([
@@ -146,7 +146,7 @@ describe('undoableScan', () => {
     );
 
     const results = scheduler.startScheduler(() => {
-      return add$.merge(subtract$).undoableScan(_.add, 0, undo$);
+      return undoableScan(add$.merge(subtract$), _.add, 0, undo$);
     });
 
     collectionAssert.assertEqual([
