@@ -1,4 +1,5 @@
 # rx-undoable
+
 Easily undo and redo RxJS observables.
 
 Great for adding undo and redo buttons to Cycle.js applications.
@@ -8,16 +9,42 @@ Installation
 
 `npm install --save rx-undoable`
 
-API
+Usage
 ---
 
 ```
-import undoable from 'rx-undoable';
+import undoableScan = 'rx-undoable';
 
-const undoableState$ = undoable(state$, undo$);
+const numbers$ = Rx.Observable.range(1, 5);
 
-const undoAndRedoableState$ = undoable(state$, undo$, redo$);
+const undo$ = ... // observable of undo intent, like clicking an undo button
+
+const undoableSum$ = undoableScan(
+  numbers$,
+  (total, change) => total + change,
+  0,
+  undo$
+).pluck('present');
 ```
+
+
+API
+---
+
+###`undoableScan(stream$, accumulator, seed, undo$, [redo$])`
+
+Which is equivalent to `stream$.scan(accumulator, seed)`, expect that data is returned in this format:
+
+```
+{
+  past: [...],
+  present: thing,
+  future: [...]
+}
+```
+
+So to get the present data, use `undoableScan(...).pluck('present')`.
+
 
 Example
 ---
@@ -36,10 +63,12 @@ function main ({DOM}) {
     DOM.select('.add').events('click').map(ev => +1)
   );
 
-  let count$ = action$.startWith(0).scan((x, y) => x + y);
+  let count$ = action$
+    .startWith(0)
+    .scan((x, y) => x + y);
 
   return {
-    DOM: undoableCount$.map(count =>
+    DOM: count$.map(count =>
       h('div', [
         h('button.subtract', 'Subtract'),
         h('button.add', 'Add'),
@@ -61,7 +90,7 @@ After:
 import Rx from 'rx';
 import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-import undoable from 'rx-undoable';                          // NEW
+import undoableScan from 'rx-undoable';
 
 function main ({DOM}) {
   let action$ = Rx.Observable.merge(
@@ -72,12 +101,16 @@ function main ({DOM}) {
   let undo$ = DOM.select('.undo').events('click');           // NEW
   let redo$ = DOM.select('.redo').events('click');           // NEW
 
-  let count$ = action$.startWith(0).scan((x, y) => x + y);
-
-  let undoableCount$ = undoable(count$, undo$, redo$);       // NEW
+  let count$ = undoableScan(                                 // NEW
+    action$,                                                 // NEW
+    (x, y) => x + y,                                         // NEW
+    0,                                                       // NEW
+    undo$,                                                   // NEW
+    redo$                                                    // NEW
+  ).pluck('present');                                        // NEW
 
   return {
-    DOM: undoableCount$.map(count =>                         // CHANGED
+    DOM: count$.map(count =>
       h('div', [
         h('button.undo', 'Undo'),                            // NEW
         h('button.redo', 'Redo'),                            // NEW
@@ -99,7 +132,7 @@ run(main, {
 Prior art
 ---
 
-`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo).
+`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo) and the algorithm used is described very eloquently by [Dan Abramov in the Redux documentation](http://rackt.org/redux/docs/recipes/ImplementingUndoHistory.html).
 
 Contributing
 ---

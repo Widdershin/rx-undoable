@@ -1,42 +1,64 @@
 import Rx from 'rx';
 import _ from 'lodash';
 
-function recordStream (stream) {
-  return stream
-    .scan((events, event, index) => events.concat([{event, index}]), [])
-    .share();
-}
-
-function undoAndRedoStream (recordedStream$, undo$, redo$) {
-  const undoPositionChange$ = Rx.Observable.merge(
-    undo$.map(_ => -1),
-    redo$.map(_ => +1)
-  );
-
-  const position$ = undoPositionChange$
-    .withLatestFrom(recordedStream$, (change, events) => ({change, events}))
-    .startWith({events: [], change: 0})
-    .scan((total, {events, change}) => {
-      if (events.length === 0) { return 0; }
-
-      const minimumPossibleUndoPosition = (-events.length) + 1;
-
-      return _.min([0, _.max([minimumPossibleUndoPosition, total + change])]);
-    }, 0);
-
-  return Rx.Observable.combineLatest(
-      position$,
-      recordedStream$,
-      (undoPosition, events) => {
-        return events[events.length - 1 + undoPosition];
-      }
-    )
-    .distinctUntilChanged()
-    .map(event => event.event);
-}
-
 const emptyObservable = Rx.Observable.empty();
 
-export default function Undo (state$, undo$, redo$ = emptyObservable) {
-  return undoAndRedoStream(recordStream(state$), undo$, redo$);
+function undo () {
+  return ({past, present, future}) => {
+    if (past.length === 0) {
+      return {past, present, future};
+    }
+
+    return {
+      past: past.slice(0, past.length - 1),
+      present: _.last(past),
+      future: [present].concat(future)
+    };
+  };
+}
+
+function redo () {
+  return ({past, present, future}) => {
+    if (future.length === 0) {
+      return {past, present, future};
+    }
+
+    return {
+      past: past.concat([present]),
+      present: _.first(future),
+      future: future.slice(1)
+    };
+  };
+}
+
+function sourceEvent (f, eventValue) {
+  return ({past, present, future}) => {
+    return {
+      past: past.concat([present]),
+      present: f(present, eventValue),
+      future: []
+    };
+  };
+}
+
+module.exports = function undoableScan (source$, f, defaultValue, undo$, redo$ = emptyObservable) {
+  if (undo$ === undefined) {
+    throw new Error('Must pass a stream of undo$ intent');
+  }
+
+  const action$ = Rx.Observable.merge(
+    source$.map(event => sourceEvent(f, event)),
+    undo$.map(undo),
+    redo$.map(redo)
+  );
+
+  const initialState = {
+    past: [],
+    present: defaultValue,
+    future: []
+  };
+
+  return action$
+    .startWith(initialState)
+    .scan((state, action) => action(state));
 }

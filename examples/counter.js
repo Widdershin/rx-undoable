@@ -1,7 +1,8 @@
+
 import Rx from 'rx';
 import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-import undoable from '../src/undoable';                          // NEW
+import undoableScan from '../src/undoable';
 
 function main ({DOM}) {
   let action$ = Rx.Observable.merge(
@@ -12,12 +13,16 @@ function main ({DOM}) {
   let undo$ = DOM.select('.undo').events('click');           // NEW
   let redo$ = DOM.select('.redo').events('click');           // NEW
 
-  let count$ = action$.startWith(0).scan((x, y) => x + y);
-
-  let undoableCount$ = undoable(count$, undo$, redo$);       // NEW
+  let count$ = undoableScan(                                 // NEW
+    action$,                                                 // NEW
+    (x, y) => x + y,                                         // NEW
+    0,                                                       // NEW
+    undo$,                                                   // NEW
+    redo$                                                    // NEW
+  ).pluck('present');                                        // NEW
 
   return {
-    DOM: undoableCount$.map(count =>                         // CHANGED
+    DOM: count$.map(count =>
       h('div', [
         h('button.undo', 'Undo'),                            // NEW
         h('button.redo', 'Redo'),                            // NEW
