@@ -4,6 +4,8 @@ import Rx from 'rx';
 import assert from 'assert';
 import undoable from '../src/undoable';
 
+import _ from 'lodash';
+
 Rx.config.longStackSupport = true;
 
 function prettyMessage (message) {
@@ -154,6 +156,40 @@ describe('undoable', () => {
       onNext(500, {count: 0}),
       onNext(600, {count: 1}),
       onNext(700, {count: 2})
+    ], results.messages);
+
+    done();
+  });
+
+  it('throws away redo state if a user undos and does something different', (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const add$ = scheduler.createHotObservable(
+      onNext(250, 1),
+      onNext(300, 1),
+      onNext(320, 1)
+    );
+
+    const subtract$ = scheduler.createHotObservable(
+      onNext(500, -1)
+    );
+
+    const undo$ = scheduler.createHotObservable(
+      onNext(400, true)
+    );
+
+    const count$ = add$.merge(subtract$).scan(_.add);
+
+    const results = scheduler.startScheduler(() => {
+      return undoable(count$, undo$);
+    });
+
+    collectionAssert.assertEqual([
+      onNext(250, 1), // Add
+      onNext(300, 2), // Add
+      onNext(320, 3), // Add
+      onNext(400, 2), // Undo
+      onNext(500, 1)  // Subtract
     ], results.messages);
 
     done();
