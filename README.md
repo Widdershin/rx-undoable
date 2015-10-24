@@ -11,16 +11,6 @@ Installation
 
 `npm install --save rx-undoable`
 
-API
----
-
-```
-import undoable from 'rx-undoable';
-
-const undoableState$ = undoable(state$, undo$);
-
-const undoAndRedoableState$ = undoable(state$, undo$, redo$);
-```
 
 Example
 ---
@@ -39,7 +29,9 @@ function main ({DOM}) {
     DOM.select('.add').events('click').map(ev => +1)
   );
 
-  let count$ = action$.startWith(0).scan((x, y) => x + y);
+  let count$ = action$
+    .startWith(0)
+    .scan((x, y) => x + y);
 
   return {
     DOM: undoableCount$.map(count =>
@@ -64,7 +56,7 @@ After:
 import Rx from 'rx';
 import {run} from '@cycle/core';
 import {h, makeDOMDriver} from '@cycle/dom';
-import undoable from 'rx-undoable';                          // NEW
+import 'rx-undoable';                                        // NEW
 
 function main ({DOM}) {
   let action$ = Rx.Observable.merge(
@@ -75,12 +67,12 @@ function main ({DOM}) {
   let undo$ = DOM.select('.undo').events('click');           // NEW
   let redo$ = DOM.select('.redo').events('click');           // NEW
 
-  let count$ = action$.startWith(0).scan((x, y) => x + y);
-
-  let undoableCount$ = undoable(count$, undo$, redo$);       // NEW
+  let count$ = action$
+    .startWith(0)
+    .undoableScan((x, y) => x + y, 0, undo$, redo$);         // CHANGED
 
   return {
-    DOM: undoableCount$.map(count =>                         // CHANGED
+    DOM: count$.map(count =>
       h('div', [
         h('button.undo', 'Undo'),                            // NEW
         h('button.redo', 'Redo'),                            // NEW
