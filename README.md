@@ -1,6 +1,6 @@
 # rx-undoable
 
-This project is still in a state of flux and is not ready for any real world use.
+**This project is still in a state of flux and is not ready for any real world use.**
 
 Easily undo and redo RxJS observables.
 
