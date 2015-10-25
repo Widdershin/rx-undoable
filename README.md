@@ -1,3 +1,8 @@
+[![npm version](https://badge.fury.io/js/rx-undoable.svg)](http://badge.fury.io/js/rx-undoable)
+[![Build Status](https://travis-ci.org/Widdershin/rx-undoable.svg?branch=master)](https://travis-ci.org/Widdershin/rx-undoable)
+
+* * * 
+
 # rx-undoable
 
 Easily undo and redo RxJS observables.
