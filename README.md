@@ -33,7 +33,7 @@ API
 
 ###`undoableScan(stream$, accumulator, seed, undo$, [redo$])`
 
-Which is equivalent to `stream$.scan(accumulator, seed)`, expect that data is returned in this format:
+Which is equivalent to `stream$.scan(accumulator, seed)`, except that data is returned in this format:
 
 ```
 {
