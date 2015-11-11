@@ -17,12 +17,12 @@ Installation
 Usage
 ---
 
-```
-import undoableScan = 'rx-undoable';
+```js
+import undoableScan from 'rx-undoable';
 
 const numbers$ = Rx.Observable.range(1, 5);
 
-const undo$ = ... // observable of undo intent, like clicking an undo button
+const undo$ = Rx.Observable.just(1).delay(1000); // observable of undo intent, like clicking an undo button
 
 const undoableSum$ = undoableScan(
   numbers$,
@@ -40,7 +40,8 @@ API
 
 Which is equivalent to `stream$.scan(accumulator, seed)`, except that data is returned in this format:
 
-```
+<!-- skip-example -->
+```js
 {
   past: [...],
   present: thing,
