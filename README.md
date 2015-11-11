@@ -40,7 +40,8 @@ API
 
 Which is equivalent to `stream$.scan(accumulator, seed)`, except that data is returned in this format:
 
-```
+<!-- skip-example -->
+```js
 {
   past: [...],
   present: thing,
