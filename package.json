@@ -11,7 +11,7 @@
     "compile-lib": "babel src -d lib",
     "browserify": "browserify src/undoable.js --standalone undoable -t babelify --outfile dist/undoable.js",
     "prepublish": "npm run compile-lib",
-    "test": "mocha --compilers js:babel/register",
+    "test": "mocha --compilers js:babel/register && markdown-doctest",
     "autotest": "mocha --compilers js:babel/register --watch -R min",
     "example": "budo -d examples examples/counter.js:bundle.js -- -t babelify | garnish",
     "start": "npm run example"
@@ -33,7 +33,7 @@
     "babelify": "^6.3.0",
     "browserify": "^11.2.0",
     "budo": "^5.1.5",
-    "markdown-doctest": "^0.1.3",
+    "markdown-doctest": "^0.2.0",
     "mocha": "^2.3.3",
     "simple-dom": "^0.2.7",
     "watchify": "^3.4.0"
