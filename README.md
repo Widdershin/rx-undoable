@@ -138,7 +138,7 @@ run(main, {
 Prior art
 ---
 
-`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo) and the algorithm used is described very eloquently by [Dan Abramov in the Redux documentation](http://rackt.org/redux/docs/recipes/ImplementingUndoHistory.html).
+`rx-undoable` was inspired by [omnidan/redux-undo](https://github.com/omnidan/redux-undo) and the algorithm used is described very eloquently by [Dan Abramov in the Redux documentation](http://redux.js.org/docs/recipes/ImplementingUndoHistory.html).
 
 Contributing
 ---
