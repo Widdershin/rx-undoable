@@ -57,9 +57,7 @@ var collectionAssert = {
 
 };
 
-const onNext = Rx.ReactiveTest.onNext,
-    onCompleted = Rx.ReactiveTest.onCompleted,
-    subscribe = Rx.ReactiveTest.subscribe;
+const {onNext} = Rx.ReactiveTest;
 
 describe('undoableScan', () => {
   it("doesn't blow up if you undo too many times", (done) => {
@@ -156,6 +154,39 @@ describe('undoableScan', () => {
       onNext(320, {past: [0, 1, 2], present: 3, future: []}), // Add
       onNext(400, {past: [0, 1], present: 2, future: [3]}), // Undo
       onNext(500, {past: [0, 1, 2], present: 1, future: []})  // Subtract
+    ], results.messages);
+
+    done();
+  });
+
+  it('takes an optional size limit for the past', (done) => {
+    const scheduler = new Rx.TestScheduler();
+
+    const add$ = scheduler.createHotObservable(
+      onNext(250, 1),
+      onNext(300, 1),
+      onNext(320, 1)
+    );
+
+    const undo$ = scheduler.createHotObservable(
+      onNext(400, true)
+    );
+
+    const subtract$ = scheduler.createHotObservable(
+      onNext(500, -1)
+    );
+
+    const results = scheduler.startScheduler(() => {
+      return undoableScan(add$.merge(subtract$), _.add, 0, undo$, Rx.Observable.empty(), {historySize: 1});
+    });
+
+    collectionAssert.assertEqual([
+      onNext(200, {past: [], present: 0, future: []}), // Start
+      onNext(250, {past: [0], present: 1, future: []}), // Add
+      onNext(300, {past: [1], present: 2, future: []}), // Add
+      onNext(320, {past: [2], present: 3, future: []}), // Add
+      onNext(400, {past: [], present: 2, future: [3]}), // Undo
+      onNext(500, {past: [2], present: 1, future: []})  // Subtract
     ], results.messages);
 
     done();

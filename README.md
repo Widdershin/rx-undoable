@@ -36,9 +36,9 @@ const undoableSum$ = undoableScan(
 API
 ---
 
-###`undoableScan(stream$, accumulator, seed, undo$, [redo$])`
+###`undoableScan(stream$, f, initialValue, undo$, [redo$, {historySize: Infinite}])`
 
-Which is equivalent to `stream$.scan(accumulator, seed)`, except that data is returned in this format:
+Which is equivalent to `stream$.scan(f, initialValue)`, except that data is returned in this format:
 
 <!-- skip-example -->
 ```js
@@ -50,6 +50,17 @@ Which is equivalent to `stream$.scan(accumulator, seed)`, except that data is re
 ```
 
 So to get the present data, use `undoableScan(...).pluck('present')`.
+
+Arguments:
+
+`stream$`: An RxJS stream  
+`f`: A function as you would use with `scan` or `reduce`. `(previousValue, currentValue) => nextValue`  
+`initialValue`: The initial value to be used as `present`.  
+`undo$`: An RxJS stream that will cause an undo each time it emits  
+`redo$`: An optional RxJS stream that will cause a redo each time it emits  
+
+`options`: An optional object carrying additional options  
+`historySize`: A size limit for the `past` array. Defaults to Infinity
 
 
 Example
